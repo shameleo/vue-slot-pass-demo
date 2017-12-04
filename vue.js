@@ -9159,7 +9159,13 @@ function processOnce (el) {
 }
 
 function processSlot (el) {
+  var slotScope = getAndRemoveAttr(el, 'slot-scope');
+  if (slotScope)
+    el.slotScope = slotScope;
+
   if (el.tag === 'slot') {
+    if (slotScope === '')
+      el.slotScope = 'x';   // normalizing (assing any truthy string, will be eventually ignored)
     el.slotName = getBindingAttr(el, 'name');
     if ("development" !== 'production' && el.key) {
       warn$2(
@@ -9169,11 +9175,10 @@ function processSlot (el) {
       );
     }
   } else {
-    var slotScope;
     if (el.tag === 'template') {
-      slotScope = getAndRemoveAttr(el, 'scope');
+      var slotScopeDeprecated = getAndRemoveAttr(el, 'scope');
       /* istanbul ignore if */
-      if ("development" !== 'production' && slotScope) {
+      if ("development" !== 'production' && slotScopeDeprecated) {
         warn$2(
           "the \"scope\" attribute for scoped slots have been deprecated and " +
           "replaced by \"slot-scope\" since 2.5. The new \"slot-scope\" attribute " +
@@ -9182,9 +9187,7 @@ function processSlot (el) {
           true
         );
       }
-      el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope');
-    } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
-      el.slotScope = slotScope;
+      el.slotScope = slotScopeDeprecated || slotScope;
     }
     var slotTarget = getBindingAttr(el, 'slot');
     if (slotTarget) {
@@ -10066,6 +10069,7 @@ function genScopedSlots (
     }).join(',')) + "])")
 }
 
+
 function genScopedSlot (
   key,
   el,
@@ -10074,12 +10078,18 @@ function genScopedSlot (
   if (el.for && !el.forProcessed) {
     return genForScopedSlot(key, el, state)
   }
-  var fn = "function(" + (String(el.slotScope)) + "){" +
-    "return " + (el.tag === 'template'
-      ? el.if
-        ? ((el.if) + "?" + (genChildren(el, state) || 'undefined') + ":undefined")
-        : genChildren(el, state) || 'undefined'
-      : genElement(el, state)) + "}";
+  var fn;
+  if (el.tag === 'slot') {
+    fn = "$scopedSlots[" + key + "]";
+  }
+  else {
+    fn = "function(" + (String(el.slotScope)) + "){" +
+      "return " + (el.tag === 'template'
+        ? el.if
+          ? ((el.if) + "?" + (genChildren(el, state) || 'undefined') + ":undefined")
+          : genChildren(el, state) || 'undefined'
+        : genElement(el, state)) + "}";
+  }
   return ("{key:" + key + ",fn:" + fn + "}")
 }
 

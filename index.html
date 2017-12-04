@@ -31,9 +31,7 @@
 			<div class="hierarchy-item">
 				<slot :title="item.title">fallback content</slot>
 				<hierarchy v-if="item.child" :item="item.child">
-					<template slot-scope="props">
-						<slot v-bind="props"></slot>
-					</template>
+					<slot slot-scope></slot>
 				</hierarchy>
 			</div>
 		</script>
