@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script src="vue.js"></script>
+		<style>
+			.section {
+				padding: 20px;
+			}
+
+			.hierarchy-item {
+				margin-left: 15px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="root">
+			<div class="section">
+				<h3>Template is passed:</h3>
+				<hierarchy :item="root">
+					<div slot-scope="props" class="stemp">~ {{ props.title }} ~</div>
+				</hierarchy>
+			</div>
+			<div class="section">
+				<h3>No template is passed (fallback content on each level expected):</h3>
+				<hierarchy :item="root"></hierarchy>
+			</div>
+		</div>
+
+		<script type="text/x-template" id="tmpl-hierarchy">
+			<div class="hierarchy-item">
+				<slot :title="item.title">fallback content</slot>
+				<hierarchy v-if="item.child" :item="item.child">
+					<template slot-scope="props">
+						<slot v-bind="props"></slot>
+					</template>
+				</hierarchy>
+			</div>
+		</script>
+		<script type="text/javascript">
+			Vue.component('hierarchy', {
+				template: '#tmpl-hierarchy',
+				props: ['item']
+			});
+		</script>
+
+		<script type="text/javascript">
+			new Vue({
+				el: '#root',
+				data() {
+					return {
+						root: {
+							title: 'first level',
+							child: {
+								title: 'second level',
+								child: {
+									title: 'third level'
+								}
+							}
+						}
+					}
+				}
+			})
+		</script>
+	</body>
+</html>
